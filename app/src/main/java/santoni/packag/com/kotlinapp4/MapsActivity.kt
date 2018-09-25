@@ -9,12 +9,12 @@ import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
+import android.widget.Toast
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -28,8 +28,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var playerLocation: Location? = null
     private var oldLocationPlayer: Location? = null
 
-    private var locationManager: LocationManager? = null
-    private var locationListener: PlayerLocationListerner? = null
+    var locationManager: LocationManager? = null
+    var locationListener: PlayerLocationListerner? = null
 
     private var pokemonCharacter: ArrayList<PokemonCharacter> = ArrayList()
 
@@ -106,8 +106,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         constructor(){
 
             playerLocation = Location("MyProvider")
-            playerLocation?.latitude = 0.0
-            playerLocation?.longitude = 0.0
+            playerLocation?.latitude = 1.0
+            playerLocation?.longitude = 1.0
 
         }
 
@@ -155,7 +155,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun accessUserLocation() {
 
         locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                2000,2f,locationListener!!)
+                2,2f,locationListener!!)
 
         val newThread = NewThread()
         newThread.start()
@@ -182,7 +182,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     continue
                 }
 
-                oldLocationPlayer = playerLocation
+               oldLocationPlayer = playerLocation
 
                 try {
                     //user Location MAP
@@ -192,7 +192,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         //player on map
                         val pLocation = LatLng(playerLocation!!.latitude, playerLocation!!.longitude)
-                        mMap.addMarker(MarkerOptions().position(pLocation).title("Hi, I am the Player")
+                        mMap.addMarker(MarkerOptions().position(pLocation)
+                                .title("Hi, I am the Player")
                                 .snippet("Let's go")
                                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.player)))
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(pLocation))
@@ -211,12 +212,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                         .snippet(pc.message)
                                         .icon(BitmapDescriptorFactory.fromResource(pc.iconOfPokemon!!)))
 
+                                if (playerLocation!!.distanceTo(pc.location) < 1) {
+
+                                    Toast.makeText(this@MapsActivity,"${pc.titleOfPokemon} is eliminated",
+                                            Toast.LENGTH_SHORT).show()
+                                    pc.isKilled = true
+                                    pokemonCharacter[pokemonCharacterIndex] = pc
+                                }
+
                             }
+
 
 
                         }
 
                     }
+                    //Thread.sleep(2000)
 
                 } catch (exception: Exception) {
                     exception.printStackTrace()
